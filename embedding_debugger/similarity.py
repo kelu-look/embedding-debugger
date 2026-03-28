@@ -61,21 +61,28 @@ def top_k_neighbors(
 
 def rank_biased_overlap(list1: List[int], list2: List[int], p: float = 0.9) -> float:
     """
-    Rank-Biased Overlap (RBO) — a top-heavy rank-correlation metric.
+    Rank-Biased Overlap (RBO-ext) — top-heavy rank-correlation metric.
     Returns a value in [0, 1]; 1 = identical ranking.
+
+    Uses the "extrapolated" variant from Webber et al. (2010) which adds the
+    residual term p^D * overlap@D so that identical finite lists score 1.0.
     """
     if not list1 or not list2:
         return 0.0
     depth = min(len(list1), len(list2))
-    score = 0.0
+    rbo_min = 0.0
     weight = 1.0
+    last_overlap = 0.0
     for d in range(1, depth + 1):
         s1 = set(list1[:d])
         s2 = set(list2[:d])
-        overlap = len(s1 & s2) / d
-        score += overlap * weight
+        last_overlap = len(s1 & s2) / d
+        rbo_min += last_overlap * weight
         weight *= p
-    return (1 - p) * score
+    rbo_min *= (1 - p)
+    # residual / extrapolation term
+    residual = (p ** depth) * last_overlap
+    return min(1.0, rbo_min + residual)
 
 
 def neighborhood_stability(
