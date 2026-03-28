@@ -1,11 +1,17 @@
-# 🔬 Embedding Debugger
+# 🧠 Embedding Debugger
 
-**A debugger for embedding failures — not a visualization tool.**
+**Debug what your embeddings are actually doing.**
 
-Embedding models fail silently. They return wrong answers from RAG pipelines,
-treat safety-critical procedures as interchangeable, and score semantically
-opposite sentences at cosine > 0.95. This toolkit makes those failures visible,
-measurable, and reproducible.
+A local-first toolkit for diagnosing retrieval failures, perturbation sensitivity,
+and representation pathologies in text embeddings.
+
+Instead of just visualizing embeddings, this tool helps you answer:
+
+- Why did this query retrieve the wrong result?
+- Why are two semantically different texts almost identical in embedding space?
+- When do embeddings ignore order, structure, or meaning changes?
+- How stable are neighborhoods under perturbations?
+- How do different embedding models behave on the same data?
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![Tests](https://img.shields.io/badge/tests-78%20passing-brightgreen)](#testing)
@@ -13,87 +19,109 @@ measurable, and reproducible.
 
 ---
 
-## The core problem
+## 🚨 Why this matters
 
-```
-Query:     "What are the steps to upgrade the software safely?"
+Modern systems — search, semantic retrieval, RAG — rely heavily on embeddings.
 
-Corpus doc A (CORRECT):
-  Step 1: Back up your data.  Step 2: Close all applications.
-  Step 3: Run the installer.  Step 4: Restart.  Step 5: Verify.
+But embeddings often behave like order-invariant or bag-of-words representations, leading to:
 
-Corpus doc B (DANGEROUS — same steps, wrong order):
-  Step 1: Restart.  Step 2: Run the installer.
-  Step 3: Back up your data.  Step 4: Close all applications.  Step 5: Verify.
+- ❌ incorrect retrieval despite high similarity
+- ❌ failure on ranking / procedural / causal text
+- ❌ unstable or misleading nearest neighbors
 
-Cosine(A, B) = 0.97   ← model treats them as nearly identical
-Score gap(A vs B) = 0.002  ← retrieval cannot distinguish them
-```
-
-Standard embedding models discard positional structure. A document with steps
-in the **wrong order** — including dangerous or safety-critical order — embedds
-identically to the correct version. This toolkit diagnoses exactly this class of failure.
+Embedding Debugger helps you see and diagnose these failures directly.
 
 ---
 
-## Three diagnostic pillars
+## 🔍 Core Capabilities
 
-### 🔴 Pillar 1 — Retrieval Debugging
+### 1. Retrieval Debugging
 
-Find where retrieval breaks at the query level.
+- Inspect top-k nearest neighbors
+- Analyze ranking errors and confusion cases
+- Compute MRR@k, Recall@k
+- Track rank drift under perturbations
 
-- FAISS-based index with Recall@k, MRR scoring
-- Per-query rank failure identification
-- **Score gap analysis**: how close is the wrong answer to the right one?
-- **Rank drift**: apply a perturbation and measure how much retrieval breaks
+### 2. Perturbation & Robustness
 
-```python
-from embedding_debugger import EmbeddingModel, RetrievalDebugger
-
-model = EmbeddingModel("all-MiniLM-L6-v2")
-a_vecs = model.encode(answers)
-debugger = RetrievalDebugger(answers, a_vecs)
-
-_, df = debugger.analyze_failures(questions, q_vecs, expected_indices, k=10)
-print(f"Recall@1: {debugger.recall_at_k(df, 1):.1%}")
-print(f"MRR@10:   {debugger.mrr_at_k(df, 10):.4f}")
-```
-
----
-
-### 🟡 Pillar 2 — Perturbation & Robustness
-
-Stress-test models with 22 perturbations across 4 categories.
+22 built-in perturbations across 4 categories:
 
 | Category | Examples | High sim = ? |
 |----------|---------|-------------|
 | **lexical** | casing, punctuation, typos | ✅ expected |
-| **structural** | word/sentence shuffle | reveals order blindness |
-| **semantic** | negation, antonyms, contradiction | 🚨 failure |
+| **structural** | word/sentence shuffle & reversal, truncation | reveals order blindness |
+| **semantic** | negation injection, antonym swap, contradiction prefix | 🚨 failure |
 | **retrieval_critical** | step reorder, causal reversal, subject-object swap, list inversion | 🚨 failure |
 
-```python
-from embedding_debugger import PerturbationSuite
+### 3. Geometry & Distribution
 
-suite = PerturbationSuite(model.encode)
+- Clustering (KMeans + elbow)
+- 2D projection (PCA / UMAP)
+- Outlier detection (LOF, Isolation Forest, centroid distance)
+- Similarity distribution analysis
 
-# Run all retrieval-critical perturbations
-df = suite.summary_table(texts, perturbation_types=["step_reorder", "causal_reversal",
-                                                      "subject_object_swap", "list_item_reversal"])
-failures = df[df["is_failure"]]
-print(f"{len(failures)} perturbation types scored ≥0.85 despite changing meaning")
+### 4. Drift & Model Comparison
+
+- Compare embedding spaces across models or time
+- Procrustes alignment + centroid drift
+- Neighborhood stability analysis (RBO)
+- Cross-model retrieval differences
+
+---
+
+## ⚡ Quickstart
+
+### 1. Install
+
+```bash
+git clone https://github.com/yourname/embedding-debugger.git
+cd embedding-debugger
+pip install -r requirements.txt
 ```
 
-**Retrieval-critical perturbations:**
+### 2. Launch UI
+
+```bash
+streamlit run app/streamlit_app.py
+```
+
+Open the local URL in your browser. Start with **🎯 Killer Demo** for the full failure pipeline.
+
+### 3. Run the killer demo (CLI)
+
+```bash
+python -m demo.killer_demo
+# Try a different model:
+python -m demo.killer_demo --model gte-small
+```
+
+This shows: order-sensitive failures → perturbation robustness → retrieval breakdowns → mitigation directions.
+Output: console report + `killer_demo_report.md`.
+
+---
+
+## 🧪 Example: Retrieval Failure
+
+**Query:** `"Step 1: boil water → Step 2: add pasta"`
+
+**Retrieved:** `"Step 1: add pasta → Step 2: boil water"`
+
+Despite reversed meaning:
+- cosine similarity ≈ 0.99
+- ranked as top result
+
+> The embedding treats meaning-changing permutations as nearly identical.
+
+More failure cases from the curated test set:
 
 ```
 subject_object_swap:  "The company acquired the startup."
-                    → "The startup acquired the company."  cosine: 0.93
+                    → "The startup acquired the company."   cosine: 0.93
 
 causal_reversal:    "The power outage caused the server crash."
                   → "The server crash caused the power outage."  cosine: 0.95
 
-step_reorder:       (5-step backup procedure, steps scrambled)  cosine: 0.97
+step_reorder:       (5-step backup procedure, steps scrambled)   cosine: 0.97
 
 list_item_reversal: "priorities: safety, reliability, performance, cost"
                   → "priorities: cost, performance, reliability, safety"  cosine: 0.96
@@ -101,57 +129,67 @@ list_item_reversal: "priorities: safety, reliability, performance, cost"
 
 ---
 
-### 🔵 Pillar 3 — Geometry & Drift
+## 🏗️ Project Structure
 
-Understand the embedding space structure and how it changes across models.
+```
+embedding_debugger/
+  models.py        # EmbeddingModel: multi-model loader (SBERT, E5, GTE, BGE)
+  similarity.py    # Cosine, top-k, RBO-ext neighborhood stability
+  perturbation.py  # 22 perturbations across 4 categories
+  retrieval.py     # FAISS + failure analysis + rank drift
+  clustering.py    # KMeans + PCA/UMAP
+  drift.py         # Procrustes + neighborhood stability
+  outliers.py      # LOF, Isolation Forest, centroid distance
+  export.py        # DebugReport → JSON / CSV / Markdown
 
-- PCA / UMAP 2-D projection with KMeans clustering
-- **Neighborhood stability**: RBO score measuring how much k-NN changes across models
-- **Procrustes alignment**: structural drift between two embedding spaces
-- Outlier detection: LOF, Isolation Forest, centroid distance, consensus voting
+app/
+  streamlit_app.py         # 3-pillar navigation
+  pages/killer_demo.py     # Full failure pipeline page
+  pages/retrieval.py       # Pillar 1 — Retrieval Debugging
+  pages/perturbation.py    # Pillar 2 — Perturbation & Robustness
+  pages/clustering.py      # Pillar 3 — Geometry & Drift
+  pages/comparison.py      # Model comparison
+  pages/drift.py           # Drift tracker
+  pages/outliers.py        # Outlier detector
 
-```python
-from embedding_debugger import DriftAnalyzer
-
-da = DriftAnalyzer(texts, vecs_sbert, vecs_gte, name_a="SBERT", name_b="GTE")
-report = da.report(k=10)
-print(f"Neighborhood stability: {report.neighborhood_stability:.3f}")
-# 0.6 = 40% of each point's 10-NN changes when switching SBERT → GTE
+demo/
+  datasets.py      # 5 built-in datasets (no download)
+  failure_cases.py # 15 curated adversarial pairs with explanations
+  killer_demo.py   # One-command demo script
+  experiments.py   # Research-style experiment runner
 ```
 
 ---
 
-## Quick start
+## 🧭 Design Principles
 
-```bash
-git clone https://github.com/yourusername/embedding-debugger
-cd embedding-debugger
-pip install -r requirements.txt
-```
+- **Local-first** — no API dependency, runs fully offline
+- **Modular & extensible** — swap in any HuggingFace model, any dataset
+- **Diagnostics over visualization** — every output answers a specific failure question
+- **Reproducible** — deterministic tests, cached embeddings, export at every step
+- **Focused on real failure modes** — built around documented, reproducible embedding pathologies
 
-### One-command killer demo
+---
 
-```bash
-python -m demo.killer_demo
-# Optional: try a different model
-python -m demo.killer_demo --model gte-small
-```
+## 🛣️ Roadmap
 
-This runs a 4-section narrative showing:
-1. A query that retrieves a dangerous procedure as its top result
-2. Proof of order blindness across all curated failure cases
-3. Category-level robustness sweep
-4. Summary with mitigation directions
+- [ ] Retrieval failure report export (JSON / HTML) ✅ done
+- [ ] Failure-case mining across datasets
+- [ ] Structured perturbation benchmark
+- [ ] RAG pipeline integration
+- [ ] Token-level attribution / saliency
+- [ ] BM25 vs dense retrieval comparison
+- [ ] Custom dataset upload in UI (CSV / JSONL)
 
-Output: console report + `killer_demo_report.md`
+---
 
-### Streamlit UI
+## 🤝 Use Cases
 
-```bash
-streamlit run app/streamlit_app.py
-```
-
-Navigate to **🎯 Killer Demo** first for the full failure pipeline.
+- Debugging embedding-based retrieval systems
+- Evaluating robustness of embedding models before deployment
+- Comparing SBERT / E5 / GTE behaviors on your data
+- Analyzing dataset structure and representation drift
+- Supporting research on embedding failures and order blindness
 
 ---
 
@@ -162,18 +200,12 @@ pytest tests/ -v
 # 78 tests, all passing, no model download required
 ```
 
-Tests use deterministic fake embedders (numpy random). The test suite covers:
-- All 22 perturbation types
-- Every category and `is_failure` logic
-- FAISS retrieval with numpy fallback
-- Export to JSON / CSV / Markdown
-- Curated failure cases dataset
+Tests use deterministic fake embedders (numpy). Coverage includes all 22 perturbation
+types, `is_failure` logic, FAISS retrieval, export, and the curated failure cases dataset.
 
 ---
 
 ## Export
-
-Every analysis page exports results as **JSON** and **Markdown**:
 
 ```python
 from embedding_debugger.export import DebugReport, retrieval_report
@@ -191,20 +223,6 @@ report.to_csv("failures.csv")
 
 ---
 
-## Curated failure cases
-
-`demo/failure_cases.py` contains hand-crafted semantically-opposite pairs
-with documented explanations and expected vs. typical similarity scores:
-
-| Category | # pairs | Typical cosine | Expected cosine |
-|----------|---------|---------------|-----------------|
-| subject_object_swap | 6 | ~0.95 | ~0.05 |
-| causal_reversal | 4 | ~0.95 | ~0.10 |
-| step_reorder | 3 | ~0.97 | ~0.02 |
-| list_item_reversal | 2 | ~0.95 | ~0.00 |
-
----
-
 ## Supported models
 
 | Name | HuggingFace ID | Dim |
@@ -218,52 +236,39 @@ with documented explanations and expected vs. typical similarity scores:
 | `bge-small-en-v1.5` | BAAI/bge-small-en-v1.5 | 384 |
 | `paraphrase-MiniLM-L6-v2` | sentence-transformers/paraphrase-MiniLM-L6-v2 | 384 |
 
----
-
-## Project structure
-
-```
-embedding-debugger/
-├── embedding_debugger/       # Core library
-│   ├── models.py             # EmbeddingModel: multi-model loader
-│   ├── similarity.py         # Cosine, top-k, RBO-ext
-│   ├── perturbation.py       # 22 perturbations across 4 categories
-│   ├── clustering.py         # KMeans + PCA/UMAP
-│   ├── retrieval.py          # FAISS + failure + rank drift analysis
-│   ├── drift.py              # Procrustes + neighborhood stability
-│   ├── outliers.py           # LOF, Isolation Forest, centroid distance
-│   ├── export.py             # DebugReport → JSON / CSV / Markdown
-│   └── utils.py              # Caching, display helpers
-├── app/
-│   ├── streamlit_app.py      # 3-pillar navigation
-│   └── pages/
-│       ├── killer_demo.py    # Full failure pipeline page
-│       ├── retrieval.py      # Pillar 1
-│       ├── perturbation.py   # Pillar 2
-│       ├── clustering.py     # Pillar 3
-│       ├── comparison.py     # Model comparison
-│       ├── drift.py          # Drift tracker
-│       ├── outliers.py       # Outlier detector
-│       └── similarity.py     # Similarity inspector
-├── demo/
-│   ├── datasets.py           # 5 built-in datasets (no download)
-│   ├── failure_cases.py      # 15 curated adversarial pairs
-│   ├── killer_demo.py        # One-command demo script
-│   └── experiments.py        # Research-style experiment runner
-└── tests/                    # 78 tests, no model download needed
-```
+Models are downloaded from HuggingFace on first use (~80–400 MB) and cached locally.
 
 ---
 
-## Mitigation directions (output from the killer demo)
+## Curated failure cases
 
-The root cause is that sentence encoders pool all tokens into a single vector,
-discarding positional and relational structure. Practical mitigations:
+`demo/failure_cases.py` — 15 hand-crafted adversarial pairs with documented explanations,
+expected vs. typical cosine scores, and gap measurement:
 
-- **Chunked retrieval**: index at sentence/step level rather than document level
-- **Cross-encoder re-ranking**: use a model that attends to full pair context
-- **Structural metadata**: store step numbers and dependency labels alongside embeddings
-- **Adversarial evaluation**: build a test set from `demo/failure_cases.py` and run it before deploying
+| Category | Pairs | Typical cosine | Expected cosine |
+|----------|-------|---------------|-----------------|
+| subject_object_swap | 6 | ~0.95 | ~0.05 |
+| causal_reversal | 4 | ~0.95 | ~0.10 |
+| step_reorder | 3 | ~0.97 | ~0.02 |
+| list_item_reversal | 2 | ~0.95 | ~0.00 |
+
+---
+
+## Mitigation directions
+
+The root cause: sentence encoders pool all tokens into a single vector,
+discarding positional and relational structure.
+
+- **Chunked retrieval** — index at sentence/step level, not document level
+- **Cross-encoder re-ranking** — use a model that attends to the full pair
+- **Structural metadata** — store step numbers, dependency labels alongside vectors
+- **Adversarial evaluation** — use `demo/failure_cases.py` as a test set before deployment
+
+---
+
+⭐ If you find this useful, star the repo and feel free to contribute!
+
+> **GitHub description:** Debug retrieval failures and hidden behaviors in text embeddings.
 
 ---
 
