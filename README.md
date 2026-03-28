@@ -19,6 +19,51 @@ Instead of just visualizing embeddings, this tool helps you answer:
 
 ---
 
+![Embedding Debugger demo](assets/demo.gif)
+
+---
+
+## 📊 Measured Results (4 models, 2026-03-28)
+
+> Full details in [`results/model_benchmark.md`](results/model_benchmark.md).
+
+### Order blindness — adversarial pair similarity
+Mean cosine similarity between semantically-opposite pairs (lower = better; ideal = 0).
+
+| Model | Mean sim ↓ | % pairs > 0.90 ↓ | FAQ Recall@1 ↑ | FAQ MRR@10 ↑ | Pert. failures ↓ |
+|:------|----------:|:----------------:|:-------------:|:-----------:|:----------------:|
+| all-MiniLM-L6-v2  | **0.986** | 100% | **95%** | **0.975** | 8/8 |
+| all-mpnet-base-v2 | **0.962** | 100% | 90%     | 0.950     | **6/8** |
+| e5-base-v2        | **0.993** | 100% | 85%     | 0.917     | 8/8 |
+| gte-base          | **0.992** | 100% | **95%** | **0.975** | 8/8 |
+
+**Every model scores > 0.96 mean cosine on semantically-opposite pairs. This is not a bug in any specific model — it is a consequence of pooled-token architecture.**
+
+### By failure category
+
+| Model | subject_object_swap | causal_reversal | step_reorder | list_item_reversal |
+|:------|:------------------:|:---------------:|:------------:|:-----------------:|
+| all-MiniLM-L6-v2  | 0.989 | 0.978 | 0.986 | 0.995 |
+| all-mpnet-base-v2 | 0.960 | 0.933 | 0.989 | 0.990 |
+| e5-base-v2        | 0.993 | 0.988 | 0.999 | 0.998 |
+| gte-base          | 0.995 | 0.985 | 0.992 | 0.998 |
+
+### Neighborhood stability across model pairs
+Mean RBO@10 — how much of each point's 10-nearest-neighbors is shared between models.
+
+| Model A | Model B | Stability (1=identical) | % unstable texts |
+|:--------|:--------|:-----------------------:|:----------------:|
+| all-MiniLM-L6-v2 | all-mpnet-base-v2 | 0.713 | 0% |
+| all-MiniLM-L6-v2 | e5-base-v2        | 0.681 | 0% |
+| all-MiniLM-L6-v2 | gte-base          | 0.743 | 0% |
+| all-mpnet-base-v2 | e5-base-v2       | 0.718 | 0% |
+| all-mpnet-base-v2 | gte-base         | 0.709 | 0% |
+| e5-base-v2        | gte-base         | 0.729 | **6.7%** |
+
+~27% of each point's nearest neighbors change when switching between model families. Retrieval quality is model-dependent in ways invisible without measurement.
+
+---
+
 ## 🚨 Why this matters
 
 Modern systems — search, semantic retrieval, RAG — rely heavily on embeddings.
