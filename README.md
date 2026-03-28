@@ -30,12 +30,14 @@ Instead of just visualizing embeddings, this tool helps you answer:
 ### Order blindness — adversarial pair similarity
 Mean cosine similarity between semantically-opposite pairs (lower = better; ideal = 0).
 
-| Model | Mean sim ↓ | % pairs > 0.90 ↓ | FAQ Recall@1 ↑ | FAQ MRR@10 ↑ | Pert. failures ↓ |
-|:------|----------:|:----------------:|:-------------:|:-----------:|:----------------:|
-| all-MiniLM-L6-v2  | **0.986** | 100% | **95%** | **0.975** | 8/8 |
-| all-mpnet-base-v2 | **0.962** | 100% | 90%     | 0.950     | **6/8** |
-| e5-base-v2        | **0.993** | 100% | 85%     | 0.917     | 8/8 |
-| gte-base          | **0.992** | 100% | **95%** | **0.975** | 8/8 |
+| Model | Mean sim ↓ | % pairs > 0.90 ↓ | FAQ R@1 †  | Pert. failures ↓ |
+|:------|----------:|:----------------:|:----------:|:----------------:|
+| all-MiniLM-L6-v2  | **0.986** | 100% | 95% | 8/8 |
+| all-mpnet-base-v2 | **0.962** | 100% | 90% | **6/8** |
+| e5-base-v2        | **0.993** | 100% | 85% | 8/8 |
+| gte-base          | **0.992** | 100% | 95% | 8/8 |
+
+† FAQ Recall@1 is confounded by dataset ambiguity (overlapping Q&A topics); all models reach Recall@5 = 100%. Do not interpret this column as a clean model ranking.
 
 **Every model scores > 0.96 mean cosine on semantically-opposite pairs. This is not a bug in any specific model — it is a consequence of pooled-token architecture.**
 

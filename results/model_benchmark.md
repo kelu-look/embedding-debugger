@@ -36,14 +36,23 @@ Mean cosine similarity between semantically-opposite pairs.
 
 ## 2. FAQ Retrieval — Q→A Matching
 
-Query: question. Corpus: 20 answers. Correct = question matches its own answer.
+Query: question. Corpus: 20 answers. Correct = question matches its own answer at rank 1.
+
+**Caveat:** The FAQ dataset has semantic overlap between some Q&A pairs (e.g. "How do I track my
+shipment?" vs the "Where is my order?" answer both discuss tracking). The one failure shared by all
+models ("track my shipment") is arguably a dataset ambiguity, not a model error. All models reach
+Recall@5 = 100%, meaning the correct answer is always in the top 5. The Recall@1 differences should
+not be interpreted as a clean model quality ranking on this dataset.
 
 | Model             |   Recall@1 ↑ |   Recall@5 ↑ |   Recall@10 ↑ |   MRR@10 ↑ |
 |:------------------|-------------:|-------------:|--------------:|-----------:|
 | all-MiniLM-L6-v2  |         0.95 |            1 |             1 |     0.975  |
-| all-mpnet-base-v2 |         0.9  |            1 |             1 |     0.95   |
-| e5-base-v2        |         0.85 |            1 |             1 |     0.9167 |
+| all-mpnet-base-v2 |         0.90 |            1 |             1 |     0.950  |
+| e5-base-v2        |         0.85 |            1 |             1 |     0.917  |
 | gte-base          |         0.95 |            1 |             1 |     0.975  |
+
+The lower Recall@1 for e5-base-v2 (3 failures vs 1 for MiniLM) is consistent with E5 being more
+sensitive to semantic overlap between ambiguous FAQ pairs — not evidence that E5 is weaker overall.
 
 ---
 
