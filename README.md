@@ -121,7 +121,7 @@ Embedding Debugger helps you see and diagnose these failures directly.
 ### 1. Install
 
 ```bash
-git clone https://github.com/yourname/embedding-debugger.git
+git clone https://github.com/kelu-look/embedding-debugger.git
 cd embedding-debugger
 pip install -r requirements.txt
 ```
