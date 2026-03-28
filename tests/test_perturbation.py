@@ -10,7 +10,7 @@ from embedding_debugger.perturbation import (
     drop_random_words,
     lowercase,
     strip_punctuation,
-    inject_prefix,
+    inject_irrelevant_prefix as inject_prefix,
     truncate,
     PERTURBATION_REGISTRY,
     PerturbationSuite,
