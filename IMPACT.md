@@ -3,7 +3,7 @@
 Lightweight log of external traction for the project. Update on a regular
 cadence (e.g., monthly). Keep entries terse and dated.
 
-Last updated: 2026-05-18
+Last updated: 2026-05-23
 
 ---
 
@@ -12,6 +12,7 @@ Last updated: 2026-05-18
 | Date | Stars | Forks | Watchers | Open issues | Closed issues | Open PRs | Merged PRs | Releases |
 |------|------:|------:|---------:|------------:|--------------:|---------:|-----------:|---------:|
 | 2026-05-18 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 (v0.1.0 pending) |
+| 2026-05-23 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 (v0.1.0) |
 
 > Source: https://github.com/kelu-look/embedding-debugger
 
@@ -19,7 +20,15 @@ Last updated: 2026-05-18
 
 | Version | Date | Notes |
 |---------|------|-------|
-| v0.1.0 | 2026-05-18 | First public release. See `RELEASE_NOTES_v0.1.0.md`. |
+| v0.1.0 | 2026-05-23 | First public release. See `RELEASE_NOTES_v0.1.0.md`. |
+
+## Release Log
+
+- v0.1.0 released: 2026-05-23
+- Release URL: https://github.com/kelu-look/embedding-debugger/releases/tag/v0.1.0
+- Repository URL: https://github.com/kelu-look/embedding-debugger
+- Initial release contents: local-first embedding debugger, retrieval-risk demo GIF, perturbation analysis, model comparison, exportable reports, and 78 passing tests.
+- Initial public metrics at release: 0 stars, 0 forks.
 
 ## 3. Issues & PRs
 
