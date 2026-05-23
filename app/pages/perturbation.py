@@ -3,7 +3,7 @@ Perturbation Lab — organized by category, with failure highlighting.
 
 Categories:
   lexical            — surface noise (should NOT change meaning)
-  structural         — reordering (should NOT change meaning; reveals order blindness)
+  structural         — reordering (should NOT change meaning; reveals order-insensitive behavior)
   semantic           — meaning-altering (should change meaning; failure = high sim)
   retrieval_critical — most dangerous (step reorder, causal reversal, etc.)
 """
@@ -36,7 +36,7 @@ CATEGORY_COLORS = {
 
 CATEGORY_DESCRIPTIONS = {
     "lexical":            "Surface-form noise — casing, punctuation, typos. Models should be robust here.",
-    "structural":         "Word/sentence reordering. High similarity reveals order blindness.",
+    "structural":         "Word/sentence reordering. High similarity reveals order-insensitive behavior.",
     "semantic":           "Meaning-altering edits — negation, antonyms. High similarity = model failure.",
     "retrieval_critical": "🚨 Most dangerous. Step reorder, causal reversal, subject-object swap. High similarity = model cannot distinguish semantically opposite documents.",
 }

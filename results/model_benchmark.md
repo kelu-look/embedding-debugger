@@ -9,7 +9,7 @@
 
 ---
 
-## 1. Order Blindness — Adversarial Pair Similarity
+## 1. Order Sensitivity — Adversarial Pair Similarity
 
 Mean cosine similarity between semantically-opposite pairs.
 **A good model should score near 0. Most score near 0.95.**

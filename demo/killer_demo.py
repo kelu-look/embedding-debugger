@@ -6,7 +6,7 @@ This script tells a single concrete story from start to finish:
   1. A user queries: "How do I upgrade the software safely?"
   2. The corpus contains one CORRECT procedure and one DANGEROUS (steps scrambled).
   3. Both documents retrieve at nearly the same score.
-  4. We prove the model is order-blind by measuring cosine similarity.
+  4. We measure order-insensitive retrieval behavior by measuring cosine similarity.
   5. We show the retrieval rank DOES NOT CHANGE after step reordering.
   6. We repeat across causal reversal and subject-object swap.
 
@@ -138,11 +138,11 @@ def section_1_retrieval_failure(model: EmbeddingModel) -> dict:
 
 
 # ──────────────────────────────────────────────────────────────────────
-# Section 2 — Order Blindness Proof
+# Section 2 — Order Sensitivity Measurement
 # ──────────────────────────────────────────────────────────────────────
 
-def section_2_order_blindness(model: EmbeddingModel) -> dict:
-    console.rule("[bold yellow]Section 2 — Proving Order Blindness")
+def section_2_order_sensitivity(model: EmbeddingModel) -> dict:
+    console.rule("[bold yellow]Section 2 — Measuring Order Sensitivity")
     console.print()
 
     suite = PerturbationSuite(model.encode)
@@ -289,7 +289,7 @@ def run(model_name: str = "all-MiniLM-L6-v2", export: bool = True) -> None:
     console.print(f"Model: [cyan]{model}[/cyan]\n")
 
     s1 = section_1_retrieval_failure(model)
-    s2 = section_2_order_blindness(model)
+    s2 = section_2_order_sensitivity(model)
     summary_df = section_3_robustness_sweep(model)
     section_4_summary(s1, s2, model_name)
 

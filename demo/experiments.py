@@ -22,22 +22,22 @@ from embedding_debugger.similarity import SimilarityAnalyzer, top_k_neighbors
 from embedding_debugger.retrieval import RetrievalDebugger
 from embedding_debugger.clustering import ClusteringAnalyzer
 from embedding_debugger.drift import DriftAnalyzer
-from .datasets import load_order_blind_pairs, load_faq, load_news, load_nli, load_products
+from .datasets import load_order_sensitive_pairs, load_faq, load_news, load_nli, load_products
 
 console = Console()
 
 
 # ==================================================================
-# Experiment 1: Order-Blind Retrieval
+# Experiment 1: Order Sensitivity Demo
 # ==================================================================
 
-def experiment_order_blindness(model_name: str = "all-MiniLM-L6-v2") -> pd.DataFrame:
+def experiment_order_sensitivity(model_name: str = "all-MiniLM-L6-v2") -> pd.DataFrame:
     """
     Show that models treat meaning-opposite sentences as highly similar.
     e.g., "The dog bit the man" ≈ "The man bit the dog"
     """
-    console.rule("[bold red]Experiment 1: Order Blindness")
-    texts, meta = load_order_blind_pairs()
+    console.rule("[bold red]Experiment 1: Order Sensitivity")
+    texts, meta = load_order_sensitive_pairs()
     model = EmbeddingModel(model_name)
     originals = meta["originals"]
     perturbed = meta["perturbed"]
@@ -60,7 +60,7 @@ def experiment_order_blindness(model_name: str = "all-MiniLM-L6-v2") -> pd.DataF
 
     df = pd.DataFrame(rows).sort_values("cosine_similarity", ascending=False)
 
-    t = Table(title=f"Order-Blind Pairs [{model_name}]", show_lines=True)
+    t = Table(title=f"Order-Sensitive Pairs [{model_name}]", show_lines=True)
     t.add_column("Original", style="green", max_width=40)
     t.add_column("Reversed", style="red", max_width=40)
     t.add_column("Cosine Sim", justify="right")
@@ -83,7 +83,7 @@ def experiment_perturbation_robustness(
     """
     Compare similarity preservation across perturbation types.
     Order perturbations should ideally show LOW similarity (meaning changes),
-    but most models show HIGH similarity (order-blind).
+    but most models show HIGH similarity (order-insensitive).
     """
     console.rule("[bold yellow]Experiment 2: Perturbation Robustness")
     texts, _ = load_faq()
@@ -166,14 +166,14 @@ def experiment_model_comparison(
     n_texts: int = 15,
 ) -> pd.DataFrame:
     """
-    Compare SBERT, GTE, E5 on order-blind pairs.
+    Compare SBERT, GTE, E5 on order-insensitive pairs.
     Shows which model is most order-sensitive.
     """
-    console.rule("[bold magenta]Experiment 4: Model Comparison on Order-Blind Pairs")
+    console.rule("[bold magenta]Experiment 4: Model Comparison on Order-Sensitive Pairs")
     if models is None:
         models = ["all-MiniLM-L6-v2", "gte-small", "e5-small-v2"]
 
-    texts, meta = load_order_blind_pairs()
+    texts, meta = load_order_sensitive_pairs()
     originals = meta["originals"][:n_texts]
     perturbed = meta["perturbed"][:n_texts]
 
@@ -197,7 +197,7 @@ def experiment_model_comparison(
 
     df = pd.DataFrame(rows).sort_values("mean_sim_order_pairs")
 
-    t = Table(title="Order-Blindness by Model (lower = better)", show_lines=True)
+    t = Table(title="Order Sensitivity by Model (lower = better)", show_lines=True)
     t.add_column("Model", style="cyan")
     t.add_column("Mean Sim", justify="right")
     t.add_column("Min Sim", justify="right")
@@ -256,7 +256,7 @@ def experiment_cluster_geometry(model_name: str = "all-MiniLM-L6-v2") -> pd.Data
 
 def run_all(model_name: str = "all-MiniLM-L6-v2") -> None:
     console.print("\n[bold underline]Embedding Debugger — Diagnostic Experiments[/bold underline]\n")
-    experiment_order_blindness(model_name)
+    experiment_order_sensitivity(model_name)
     experiment_perturbation_robustness(model_name)
     experiment_retrieval_failures(model_name)
     experiment_model_comparison()

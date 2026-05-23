@@ -82,12 +82,12 @@ def load_faq() -> Dataset:
 
 
 # ------------------------------------------------------------------
-# 2. Order-blind showcase sentences
+# 2. Order-sensitive showcase sentences
 #    These sentence pairs have different meaning but similar vocabulary,
 #    or same meaning but different word order.
 # ------------------------------------------------------------------
 
-ORDER_BLIND_PAIRS = [
+ORDER_SENSITIVE_PAIRS = [
     # (original, order-perturbed)
     (
         "The dog bit the man.",
@@ -132,15 +132,15 @@ ORDER_BLIND_PAIRS = [
 ]
 
 
-def load_order_blind_pairs() -> Dataset:
-    originals = [p[0] for p in ORDER_BLIND_PAIRS]
-    perturbed = [p[1] for p in ORDER_BLIND_PAIRS]
+def load_order_sensitive_pairs() -> Dataset:
+    originals = [p[0] for p in ORDER_SENSITIVE_PAIRS]
+    perturbed = [p[1] for p in ORDER_SENSITIVE_PAIRS]
     texts = originals + perturbed
     meta = {
         "originals": originals,
         "perturbed": perturbed,
-        "pairs": ORDER_BLIND_PAIRS,
-        "description": "Pairs where word-order reversal changes meaning — exposes order-blind models",
+        "pairs": ORDER_SENSITIVE_PAIRS,
+        "description": "Pairs where word-order reversal changes meaning — exposes order-insensitive behavior",
     }
     return texts, meta
 
@@ -289,7 +289,7 @@ def load_products() -> Dataset:
 
 DATASETS = {
     "faq": load_faq,
-    "order_blind": load_order_blind_pairs,
+    "order_sensitive": load_order_sensitive_pairs,
     "news": load_news,
     "nli": load_nli,
     "products": load_products,

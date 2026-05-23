@@ -21,6 +21,7 @@ setup(
         "transformers>=4.40.0",
         "tqdm>=4.66.0",
         "rich>=13.7.0",
+        "tabulate>=0.9.0",
     ],
     entry_points={
         "console_scripts": [

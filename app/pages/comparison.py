@@ -2,7 +2,7 @@
 Model Comparison page.
 
 Compare SBERT, E5, GTE embeddings side by side:
-- Order-blind pair similarity scores
+- Order-sensitive pair similarity scores
 - Top-k neighbor agreement
 - Pairwise overlap on a shared corpus
 """
@@ -35,7 +35,7 @@ def render() -> None:
             default=["all-MiniLM-L6-v2", "gte-small", "e5-small-v2"],
             key="cmp_models",
         )
-        dataset_name = st.selectbox("Dataset", ["order_blind", "faq", "news", "products"], key="cmp_dataset")
+        dataset_name = st.selectbox("Dataset", ["order_sensitive", "faq", "news", "products"], key="cmp_dataset")
         k_nn = st.slider("k for neighbor overlap", 5, 20, 10, key="cmp_k")
 
     if len(selected) < 2:
@@ -54,12 +54,12 @@ def render() -> None:
             model_vecs[mname] = encode_texts(mname, tuple(texts))
 
     # ------------------------------------------------------------------
-    # Tab 1: Order-blind pair similarity (order_blind dataset only)
+    # Tab 1: Order-sensitive pair similarity (order_sensitive dataset only)
     # ------------------------------------------------------------------
     tab1, tab2, tab3 = st.tabs(["Order sensitivity", "Neighbor overlap", "Pairwise drift"])
 
     with tab1:
-        if dataset_name == "order_blind":
+        if dataset_name == "order_sensitive":
             originals = meta["originals"]
             perturbed = meta["perturbed"]
             n = len(originals)
@@ -88,7 +88,7 @@ def render() -> None:
                 range_color=[0.3, 1.0],
                 title="Mean cosine sim: original vs order-reversed",
             )
-            fig.add_hline(y=0.9, line_dash="dash", annotation_text="0.9 — severe order blindness")
+            fig.add_hline(y=0.9, line_dash="dash", annotation_text="0.9 — severe order insensitivity")
             st.plotly_chart(fig, use_container_width=True)
 
             # Per-pair breakdown
@@ -102,7 +102,7 @@ def render() -> None:
             detail_df = pd.DataFrame(detail_rows)
             st.dataframe(detail_df, use_container_width=True, hide_index=True)
         else:
-            st.info("Switch to the **order_blind** dataset to see order sensitivity comparison.")
+            st.info("Switch to the **order_sensitive** dataset to see order sensitivity comparison.")
 
     with tab2:
         st.subheader(f"Top-{k_nn} neighbor overlap (Jaccard & RBO)")

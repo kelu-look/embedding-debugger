@@ -27,8 +27,7 @@ def header():
     console.print()
     console.print(Panel(
         "[bold]Embedding Debugger — Killer Demo[/bold]\n"
-        "Proving that standard embedding models cannot distinguish\n"
-        "semantically opposite procedures, causes, and orderings.",
+        "Diagnosing retrieval failures hidden by high embedding similarity.",
         border_style="bold white",
         width=100,
     ))
@@ -37,7 +36,7 @@ def header():
 
 
 def section1():
-    console.rule("[bold red]Section 1 — Retrieval Failure: Safe vs Dangerous Procedure")
+    console.rule("[bold red]Section 1 — Retrieval Risk: Near-Tie Between Safe and Dangerous Procedures")
     console.print()
     console.print(Panel(
         "[bold]Query:[/bold] What are the steps to upgrade the software safely?\n\n"
@@ -65,7 +64,7 @@ def section1():
     console.print(f"\n  Safe score:      [bold]0.9897[/bold]")
     console.print(f"  Dangerous score: [bold]0.9865[/bold]")
     console.print(f"  Score gap:       [bold]+0.0032[/bold]")
-    console.print("[bold red]  ⚠  Gap < 0.05 — model cannot distinguish safe from dangerous procedure.[/bold red]")
+    console.print("[bold red]  ⚠  Gap < 0.05 — model weakly separates safe from dangerous procedure.[/bold red]")
     console.print()
     console.print(f"  Cosine similarity (safe ↔ dangerous): [bold]0.9866[/bold]")
     console.print("[red]  ⚠  These documents are embedded at cosine > 0.90. "
@@ -75,28 +74,29 @@ def section1():
 
 
 def section2():
-    console.rule("[bold yellow]Section 2 — Proving Order Blindness")
+    console.rule("[bold yellow]Section 2 — Measuring Order Sensitivity")
     console.print()
 
     t = Table(title="Adversarial pairs — cosine similarity", show_lines=True, width=100)
     t.add_column("Original")
     t.add_column("Adversarial")
     t.add_column("Cosine", justify="right")
-    t.add_column("Expected", justify="right")
+    t.add_column("Risk Type")
     t.add_column("Verdict")
     data = [
-        ("The company acquired the startup.", "The startup acquired the company.", "0.9925", "~0.10", "[red]FAIL[/red]"),
-        ("The patient sued the doctor.",      "The doctor sued the patient.",      "0.9941", "~0.00", "[red]FAIL[/red]"),
-        ("Revenue exceeded expenses.",        "Expenses exceeded revenue.",        "0.9959", "~0.00", "[red]FAIL[/red]"),
-        ("Smoking causes lung cancer.",       "Lung cancer causes smoking.",       "0.9779", "~0.00", "[red]FAIL[/red]"),
-        ("Power outage caused server crash.", "Server crash caused power outage.", "0.9756", "~0.00", "[red]FAIL[/red]"),
-        ("Step order: backup→install→verify", "Step order: verify→install→backup", "0.9969", "~0.00", "[red]FAIL[/red]"),
+        ("The company acquired the startup.", "The startup acquired the company.", "0.9925", "entity reversal",   "[red]FAIL[/red]"),
+        ("The patient sued the doctor.",      "The doctor sued the patient.",      "0.9941", "entity reversal",   "[red]FAIL[/red]"),
+        ("Revenue exceeded expenses.",        "Expenses exceeded revenue.",        "0.9959", "entity reversal",   "[red]FAIL[/red]"),
+        ("Smoking causes lung cancer.",       "Lung cancer causes smoking.",       "0.9779", "causal reversal",   "[red]FAIL[/red]"),
+        ("Power outage caused server crash.", "Server crash caused power outage.", "0.9756", "causal reversal",   "[red]FAIL[/red]"),
+        ("Step order: backup→install→verify", "Step order: verify→install→backup", "0.9969", "procedure reorder", "[red]FAIL[/red]"),
     ]
     for row in data:
         t.add_row(*row)
     console.print(t)
     console.print("\n  [bold]All 15 curated adversarial pairs score > 0.90 across all 4 tested models.[/bold]")
-    console.print("  [dim]This is not a bug in any model — it is a property of pooled-token architecture.[/dim]")
+    console.print("  [dim]This pattern appears across the tested models and warrants targeted "
+                  "debugging in retrieval pipelines.[/dim]")
     console.print()
     pause(3.5)
 
@@ -117,9 +117,9 @@ def section3():
         ("lexical",            "lowercase",             "0.9997", "[green]✅ OK[/green]"),
         ("lexical",            "strip_punctuation",     "0.9991", "[green]✅ OK[/green]"),
         ("lexical",            "add_typos",             "0.9954", "[green]✅ OK[/green]"),
-        # Structural — high sim reveals order blindness (expected but noteworthy)
-        ("structural",         "shuffle_words",         "0.9821", "[yellow]⚠ order-blind[/yellow]"),
-        ("structural",         "reverse_sentences",     "0.9774", "[yellow]⚠ order-blind[/yellow]"),
+        # Structural — high sim reveals order-insensitive behavior (expected but noteworthy)
+        ("structural",         "shuffle_words",         "0.9821", "[yellow]⚠ order-insensitive[/yellow]"),
+        ("structural",         "reverse_sentences",     "0.9774", "[yellow]⚠ order-insensitive[/yellow]"),
         # Retrieval-critical — meaning changes, high sim = failure
         ("retrieval_critical", "step_reorder",          "0.9969", "[red]🚨 FAILURE[/red]"),
         ("retrieval_critical", "causal_reversal",       "0.9847", "[red]🚨 FAILURE[/red]"),
@@ -134,7 +134,8 @@ def section3():
     console.print(t)
     console.print(
         "\n  ✅ Correctly robust to surface noise (lexical)  |  "
-        "[red]🚨 8/8 meaning-altering perturbations undetected[/red]\n"
+        "[red]🚨 6/6 semantic or retrieval-critical perturbations remain highly similar "
+        "under the current threshold (cosine ≥ 0.85)[/red]\n"
     )
     pause(3.0)
 
@@ -144,15 +145,15 @@ def section4():
     console.print()
     console.print(Panel(
         f"[bold]Model:[/bold] {MODEL}\n\n"
-        "• Safe vs dangerous procedure score gap: [bold]+0.0032[/bold] ([red]indistinguishable[/red])\n"
+        "• Safe vs dangerous procedure score gap: [bold]+0.0032[/bold] ([red]very small margin[/red])\n"
         "• Safe ↔ dangerous cosine similarity:    [bold]0.9866[/bold]  ([red]nearly identical[/red])\n"
-        "• Mean cosine after step reorder:        [bold]0.9969[/bold]\n\n"
-        "[bold]Root cause:[/bold] Sentence-level embedding models pool token representations\n"
-        "into a single vector, discarding positional structure.\n\n"
+        "• Step reordering remains highly similar under embedding-only retrieval.\n\n"
+        "[bold]Observed behavior:[/bold] The pooled representation provides weak\n"
+        "separation under meaning-changing order edits.\n\n"
         "[bold]Implications:[/bold]\n"
         "  • RAG systems may surface dangerous or incorrect procedural documents\n"
         "  • Semantic search cannot distinguish cause from effect\n"
-        "  • Priority-ordered lists are retrieved interchangeably regardless of order\n\n"
+        "  • Priority-ordered lists may be difficult to distinguish under embedding-only retrieval\n\n"
         "[bold]Mitigation directions:[/bold]\n"
         "  • Use chunked retrieval (sentence-level, not document-level)\n"
         "  • Re-rank with a cross-encoder that attends to order\n"

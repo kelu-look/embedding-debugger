@@ -2,7 +2,7 @@
 Cross-model benchmark — runs all key experiments and writes results/model_benchmark.md.
 
 Covers:
-  1. Order blindness     — cosine similarity on curated semantically-opposite pairs
+  1. Order sensitivity     — cosine similarity on curated semantically-opposite pairs
   2. FAQ retrieval       — Recall@1, Recall@5, MRR@10
   3. Perturbation sweep  — mean cosine after each retrieval-critical perturbation
   4. Neighborhood drift  — RBO stability between every model pair
@@ -33,7 +33,7 @@ from embedding_debugger.models import EmbeddingModel
 from embedding_debugger.retrieval import RetrievalDebugger
 from embedding_debugger.perturbation import PerturbationSuite, PERTURBATION_CATEGORIES
 from embedding_debugger.similarity import neighborhood_stability
-from demo.datasets import load_faq, load_order_blind_pairs
+from demo.datasets import load_faq, load_order_sensitive_pairs
 from demo.failure_cases import (
     ALL_FAILURE_CASES,
     SUBJECT_OBJECT_FAILURES,
@@ -56,7 +56,7 @@ DEFAULT_MODELS = [
 # Experiment runners
 # ──────────────────────────────────────────────────────────────────────
 
-def run_order_blindness(model: EmbeddingModel) -> Dict:
+def run_order_sensitivity(model: EmbeddingModel) -> Dict:
     """Cosine similarity on curated semantically-opposite pairs, by category."""
     groups = {
         "subject_object_swap": SUBJECT_OBJECT_FAILURES,
@@ -183,7 +183,7 @@ def write_report(
         "",
         "---",
         "",
-        "## 1. Order Blindness — Adversarial Pair Similarity",
+        "## 1. Order Sensitivity — Adversarial Pair Similarity",
         "",
         "Mean cosine similarity between semantically-opposite pairs.",
         "**A good model should score near 0. Most score near 0.95.**",
@@ -323,14 +323,14 @@ def run(model_names: List[str]) -> None:
         t0 = time.perf_counter()
         model = EmbeddingModel(mname)
 
-        order_results[mname]       = run_order_blindness(model)
+        order_results[mname]       = run_order_sensitivity(model)
         retrieval_results[mname]   = run_faq_retrieval(model)
         perturbation_results[mname] = run_perturbation_sweep(model)
         all_vecs[mname]            = model.encode(shared_texts)
 
         elapsed = time.perf_counter() - t0
         console.print(
-            f"  order blindness (overall mean):  [bold]{order_results[mname]['overall']['mean']}[/bold]"
+            f"  order-insensitive behavior (overall mean):  [bold]{order_results[mname]['overall']['mean']}[/bold]"
         )
         console.print(
             f"  FAQ Recall@1:                     [bold]{retrieval_results[mname]['recall_at_1']:.1%}[/bold]"

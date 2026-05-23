@@ -7,7 +7,7 @@ Perturbations are organized into four categories that map directly to failure mo
                 Should NOT change cosine sim much; high sim here is correct.
 
   STRUCTURAL  — reordering words or sentences
-                Should NOT change cosine sim; high sim here reveals order blindness.
+                Should NOT change cosine sim; high sim here reveals order-insensitive behavior.
 
   SEMANTIC    — meaning-altering edits (negation, content injection)
                 SHOULD change cosine sim; high sim here is a model failure.

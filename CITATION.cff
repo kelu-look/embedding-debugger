@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use Embedding Debugger in your work, please cite the software as below."
+title: "Embedding Debugger: a local-first toolkit for debugging retrieval failures and hidden behaviors in text embeddings"
+abstract: >-
+  Embedding Debugger is an open-source, local-first toolkit for debugging
+  retrieval failures, perturbation sensitivity, neighborhood instability,
+  clustering, drift, and outliers in text embedding systems. It provides a
+  Streamlit UI and CLI, 22 built-in perturbations across 4 categories, FAISS
+  retrieval inspection, cross-model neighborhood stability, and exportable
+  Markdown/JSON/CSV debug reports.
+type: software
+authors:
+  - given-names: Ke
+    family-names: Lu
+    email: look970726@gmail.com
+repository-code: "https://github.com/kelu-look/embedding-debugger"
+url: "https://github.com/kelu-look/embedding-debugger"
+license: MIT
+version: "0.1.0"
+date-released: "2026-05-18"
+keywords:
+  - embeddings
+  - retrieval
+  - rag
+  - vector-search
+  - semantic-search
+  - sentence-transformers
+  - robustness
+  - perturbation-testing
+  - drift-detection
+  - embedding-debugging

@@ -157,7 +157,7 @@ def render() -> None:
 
     # ── Step 3: Why This Happens ──────────────────────────────────────
     st.divider()
-    st.markdown("## Step 3 — Why This Happens: Order Blindness Proof")
+    st.markdown("## Step 3 — Why This Happens: Order Sensitivity Measurement")
     st.markdown(
         "We now test whether the model is sensitive to **step reordering** "
         "across a set of known failure cases."

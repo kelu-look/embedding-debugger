@@ -3,7 +3,7 @@
 import pytest
 from demo.datasets import (
     load_faq,
-    load_order_blind_pairs,
+    load_order_sensitive_pairs,
     load_news,
     load_nli,
     load_products,
@@ -26,8 +26,8 @@ def test_faq_pairs_aligned():
     assert len(meta["questions"]) == len(meta["answers"])
 
 
-def test_order_blind_pairs():
-    texts, meta = load_order_blind_pairs()
+def test_order_sensitive_pairs():
+    texts, meta = load_order_sensitive_pairs()
     assert len(meta["originals"]) == len(meta["perturbed"])
     assert len(texts) == 2 * len(meta["originals"])
 

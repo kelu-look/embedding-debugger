@@ -26,7 +26,7 @@ def render() -> None:
         all_models = list(PRESET_MODELS.keys())
         model_a = st.selectbox("Model A", all_models, index=0, key="drift_ma")
         model_b = st.selectbox("Model B", all_models, index=2, key="drift_mb")
-        dataset_name = st.selectbox("Dataset", ["news", "faq", "products", "order_blind"], key="drift_ds")
+        dataset_name = st.selectbox("Dataset", ["news", "faq", "products", "order_sensitive"], key="drift_ds")
         k_nn = st.slider("k for neighborhood stability", 5, 20, 10, key="drift_k")
 
     texts, _ = get_dataset(dataset_name)
